@@ -1,0 +1,16 @@
+;Mandatory
+
+button "setup", commands "setup"
+button "go", commands "go"
+button "go forever", commands "go", flag "forever"
+
+;Optional
+
+Plot: "Avg mu". Pen update commands: "plot avg_mu1"
+Plot "Stand-dev mu". Pen update commands: "plot std_mu1"
+Plot: "Popolation composition". 
+       Pen update commands: - plot (count confs) / (count turtles)
+                            - plot (count anticonfs) / (count turtles)
+                            - plot (count autorefs) / (count turtles)
+                            - plot (count bayesians) / (count turtles)
+                            - plot (count antiautos) / (count turtles)
