@@ -6,11 +6,35 @@ button "go forever", commands "go", flag "forever"
 
 ;Optional
 
-Plot: "Avg mu". Pen update commands: "plot avg_mu1"
-Plot "Stand-dev mu". Pen update commands: "plot std_mu1"
+Plot: "Avg mu". Pen update commands: "plot avg_mu1".
+Plot "Stand-dev mu". Pen update commands: "plot std_mu1".
+Plot "Diff_ps". Pen update commands: plot diff_ps1.
 Plot: "Popolation composition". 
        Pen update commands: - plot (count confs) / (count turtles)
                             - plot (count anticonfs) / (count turtles)
                             - plot (count autorefs) / (count turtles)
                             - plot (count bayesians) / (count turtles)
                             - plot (count antiautos) / (count turtles)
+Plot: "Signals". Pen Update commands: plot count turtles with [s = 0] / count turtles.
+Plot: "Turtles by rhos". 
+       Pen update commands: - if ticks > 0 [plot count turtles with [rho = rho_1] / count turtles]
+                            - if ticks > 0 [plot count turtles with [rho = rho_2] / count turtles]
+Plot: "Turtles by mu".
+      Pen update commands: - if ticks > 0 [plot count turtles with [first mu < 0.5] / count turtles]
+                           - if ticks > 0 [plot count turtles with [first mu >= 0.5] / count turtles]
+
+Monitor: "Turtles with s = a". Reporter: count turtles with [s = 0] / count turtles.
+Monitor: "Diff_ps". Reporter: diff_ps1.
+Monitor: "Probability of A". Reporter: ps.
+Monitor: "Precision". Reporter: p.
+Monitor: "Population". Reporter: count turtles.
+Monitor: "mu_0". Reporter: mu_0.
+Monitor: "rho_1". Reporter: rho_1.
+Monitor: "rho_2". Reporter: rho_2.
+Monitor: "omega". Reporter: ifelse-value (omega = 0) ["A"] ["B"].
+
+
+* for each of the following monitors, create one monitor for each breed (see the code section for the breeds)*
+Monitor: "Mean_e_breed". Reporter: mean [diff_ps] of breed. 
+Monitor: "Avg mu breed". Reporter: mean [diff_ps] of breed.
+Monitor: "breed". Reporter: "(count breed) / (count turtles)"
