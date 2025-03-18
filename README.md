@@ -1,5 +1,5 @@
 # An-evolutionary-analysis-on-narrative-selection
-This repository includes the codes of the simulations from the paper "An evolutionary analysis on narrative selection" written by Roberto Rozzi and Federico Innocenti
+This repository includes the codes of the simulations from the paper "An evolutionary analysis on narrative selection" written by Roberto Rozzi and Federico Innocenti.
 
 The code part must be insert in the dedicated part of NetLogo, while the in the interface part I insert the commands to setup the interface functional to the code. Other plots and monitors are optional.
 
