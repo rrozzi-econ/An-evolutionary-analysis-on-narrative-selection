@@ -22,6 +22,12 @@ globals[
  nanti_auto
  tau
  delta
+ deaths
+ avg_mu_bays
+ avg_mu_conf
+ avg_mu_anticonf
+ avg_mu_auto
+ avg_mu_antiau
 ]
 
 breed [bayesians bayesian]
@@ -42,18 +48,19 @@ turtles-own[
 
 to setup
   clear-all
-  set p 0.7 ;+ random-float 0.5
+  set p 0.75 ;+ random-float 0.5
   set lambda 5; random-float 5 ; lambda 5 should be big enough to make only the beliefs count
   set rho_1 0.6 ;+ random-float 0.5 ;same here (random)
   set rho_2 0.9 ;rho_1 + random-float (1 - rho_1)
-  set ps 0.9
+  set ps 0.5
   set mu_0 0.5
-  set tau 20
+  set tau 10
   set delta 0.5
   ifelse random-float 1 <= ps
     [set omega 0]
     [set omega 1]
-  set nconf random pop
+  set nconf random pop  
+  ;ifelse nconf < pop [set nbays (pop - nconf)] [set nbays 0]
   ifelse nconf < pop [set nanticonf random (pop - nconf)] [set nanticonf 0]
   ifelse nconf + nanticonf < pop [set nbays random (pop - nconf - nanticonf)] [set nbays 0]
   ifelse nconf + nanticonf + nbays < pop [set nauto random (pop - nconf - nanticonf - nbays)] [set nauto 0]
@@ -91,6 +98,11 @@ ifelse ticks = 0
   [set avg_mu1 mean [first mu] of turtles
    set diff_ps1 mean [diff_ps] of turtles
    set avgmu_list fput avg_mu1 avgmu_list
+;   set avg_mu_bays mean [first mu] of bayesians
+;   set avg_mu_conf mean [first mu] of confs
+;   set avg_mu_anticonf mean [first mu] of anticonfs
+;   set avg_mu_auto mean [first mu] of autorefs
+;   set avg_mu_antiau mean [first mu] of antiautos
   ]
 
   ifelse ticks = 0
@@ -101,7 +113,29 @@ ifelse ticks = 0
     [set omega 0]
     [set omega 1]
 
-ask confs [
+ask bayesians [
+    ifelse omega = 0
+      [ifelse random-float 1 <= p ; random-float 1 returns a number between 0 and 1, if it is lower than p then agents receive signal a (so it's more likely they receive signal a since omega = A)
+        [set s 0]
+        [set s 1]
+       ]
+
+      [ifelse random-float 1 <= p ; random-float 1 returns a number between 0 and 1, if it is lower than p then agents receive signal a (so it's more likely they receive signal a since omega = A)
+        [set s 1]
+        [set s 0]
+       ]
+
+    BU
+
+    ifelse ticks = 0
+    [set mu fput mu_0 mu]
+    [set mu fput mu_t mu]
+
+    ifelse first mu < 0.5 [set color blue] [set color red]
+    set diff_ps (first mu - ps) ^ 2
+  ]
+  
+  ask confs [
     ifelse omega = 0
       [ifelse random-float 1 <= p ; random-float 1 returns a number between 0 and 1, if it is lower than p then agents receive signal a (so it's more likely they receive signal a since omega = A)
         [set s 0]
@@ -114,6 +148,7 @@ ask confs [
        ]
 
     det-mu1
+    ;conform
 
     ifelse ticks = 0
     [set mu fput mu_0 mu]
@@ -136,28 +171,6 @@ ask confs [
        ]
 
     det-mu2
-
-    ifelse ticks = 0
-    [set mu fput mu_0 mu]
-    [set mu fput mu_t mu]
-
-    ifelse first mu < 0.5 [set color blue] [set color red]
-    set diff_ps (first mu - ps) ^ 2
-  ]
-
-  ask bayesians [
-    ifelse omega = 0
-      [ifelse random-float 1 <= p ; random-float 1 returns a number between 0 and 1, if it is lower than p then agents receive signal a (so it's more likely they receive signal a since omega = A)
-        [set s 0]
-        [set s 1]
-       ]
-
-      [ifelse random-float 1 <= p ; random-float 1 returns a number between 0 and 1, if it is lower than p then agents receive signal a (so it's more likely they receive signal a since omega = A)
-        [set s 1]
-        [set s 0]
-       ]
-
-    BU
 
     ifelse ticks = 0
     [set mu fput mu_0 mu]
@@ -212,17 +225,48 @@ ask confs [
 
   if ticks > 0 [
     if ticks mod tau = 0 [
-      ask turtles [if diff_ps1 - diff_ps < 0 [die]]
-      let n count turtles with [diff_ps1 - diff_ps > 0]
-      create-confs ((1 / 5) * (pop - n)) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
-      create-autorefs ((1 / 5) * (pop - n)) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
-      create-antiautos ((1 / 5) * (pop - n)) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
-      create-bayesians ((1 / 5) * (pop - n)) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
-      create-anticonfs ((1 / 5) * (pop - n)) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+      let dmin min [diff_ps] of turtles
+      let dmax max [diff_ps] of turtles
+      ask turtles [
+        ifelse diff_ps <= diff_ps1 
+        [if random-float 1 <= 0.5 * (diff_ps - dmin) / (diff_ps1 - dmin) [set deaths deaths + 1 die]]
+        [if random-float 1 <= 0.5 * (1 + (diff_ps - diff_ps1) / (dmax - diff_ps1))  [set deaths deaths + 1 die]]
+      ]
+;      create-confs ((1 / 5) * deaths) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+;      create-autorefs ((1 / 5) * deaths) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+;      create-antiautos ((1 / 5) * deaths) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+;      create-bayesians ((1 / 5) * deaths) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+;      create-anticonfs ((1 / 5) * deaths) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+      ;; Compute how many new turtles we need
+    let current-count count turtles
+    let needed pop - current-count
+    if needed < 0 [ set needed 0 ]  ;; just in case
+
+    ;; Divide evenly among 5 breeds
+    let per-breed floor (needed / 5)
+    let rest needed - (5 * per-breed)
+      
+;    let per-breed floor (needed / 2)
+;    let rest needed - (2 * per-breed)
+    
+    ;; Recreate new turtles
+    create-confs per-breed [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+    create-autorefs per-breed [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+    create-antiautos per-breed [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+    create-bayesians per-breed [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+    create-anticonfs (per-breed + rest) [move-to one-of patches set mu_0 0.5 set mu list mu_0 mu]
+    ;; rest goes to anticonfs, but you can change which breed gets it
     ]
+   set deaths 0
   ]
 
   tick
+end
+
+to conform
+  ifelse s = 0; s = a
+   [set mu_t 0.5 * (p * (first mu)) / (p * (first mu) + (1 - p) * (1 - (first mu))) + 0.5 * (mean [first mu] of other turtles)]
+   [set mu_t 0.5 * ((1 - p) * (first mu))/((1 - p) * (first mu) + p * (1 - (first mu))) + 0.5 * (mean [first mu] of other turtles)]
 end
 
 to BU ; standard bayesian updating
