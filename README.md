@@ -7,4 +7,4 @@ The project explores how different belief-updating strategies influence the long
 
 The repository contains four netlogo code sections for the four different laws of motion and a netlogo interface which is standard for all laws of motion.
 
-*Note that in the code, we refer to naive agents as bayesians.
+*Note that in the code, we refer to standard agents as bayesians.
